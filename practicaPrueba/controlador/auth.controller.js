@@ -1,0 +1,14 @@
+const authService = require('../service/auth.service');
+
+class AuthController{
+    async login(req,res){
+        try{
+            const {username,password} = req.body;
+            const result = await authService.login(username,password);
+            return res.status(200).json(result);
+        }catch(error){
+            return res.status(401).json({error: error.message});
+        }
+    }
+}
+module.exports = new AuthController();

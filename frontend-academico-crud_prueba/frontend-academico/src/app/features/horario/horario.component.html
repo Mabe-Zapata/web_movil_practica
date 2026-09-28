@@ -1,0 +1,225 @@
+@if (!auth.puedeGestionar()) {
+  <!-- ============ VISTA ESTUDIANTE (solo lectura) ============ -->
+  <div class="flex items-center justify-between mb-1">
+    <p class="text-[11px] font-semibold tracking-wider text-ink-300 uppercase">Semana del 24 al 28 de agosto</p>
+  </div>
+
+  <div class="flex items-center justify-between mb-5">
+    <h2 class="text-lg font-bold text-ink-900">Tus clases de la semana</h2>
+
+    <button
+      type="button"
+      (click)="exportarHorario()"
+      class="flex items-center gap-2 rounded-full border border-brand-700 px-4 py-2 text-sm font-semibold text-brand-800 hover:bg-brand-100"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.8" class="w-4 h-4">
+        <rect x="4" y="5.5" width="16" height="14" rx="2" />
+        <path stroke-linecap="round" d="M8 3.5v3.5M16 3.5v3.5M4 10h16M12 13v4m-2-2 2 2 2-2" />
+      </svg>
+      Exportar horario
+    </button>
+  </div>
+
+  <div class="flex gap-3 mb-6">
+    @for (dia of dias; track dia.abbr) {
+      <button
+        type="button"
+        (click)="diaSeleccionado.set(dia.abbr)"
+        class="flex flex-col items-center justify-center rounded-xl w-16 h-16 border transition"
+        [class.bg-brand-800]="diaSeleccionado() === dia.abbr"
+        [class.text-white]="diaSeleccionado() === dia.abbr"
+        [class.border-brand-800]="diaSeleccionado() === dia.abbr"
+        [class.bg-white]="diaSeleccionado() !== dia.abbr"
+        [class.text-ink-700]="diaSeleccionado() !== dia.abbr"
+        [class.border-line]="diaSeleccionado() !== dia.abbr"
+      >
+        <span class="text-[11px] font-semibold">{{ dia.abbr }}</span>
+        <span class="text-base font-bold">{{ dia.fecha }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="space-y-3">
+    @if (academico.horario.isLoading()) {
+      <p class="text-sm text-ink-500">Cargando horario...</p>
+    }
+
+    @if (academico.horario.error()) {
+      <p class="text-sm text-red-600">No se pudo cargar el horario. Verifica que el mock API esté corriendo.</p>
+    }
+
+    @for (clase of clasesDelDia(); track clase.horaInicio) {
+      <div class="flex items-center gap-5 rounded-xl border border-line bg-white px-5 py-4">
+        <div class="w-14 text-right shrink-0">
+          <p class="text-sm font-bold text-ink-900">{{ clase.horaInicio }}</p>
+          <p class="text-xs text-ink-400">{{ clase.horaFin }}</p>
+        </div>
+        <div class="w-px self-stretch bg-line"></div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-semibold uppercase tracking-wide" [class]="claseCategoriaClase(clase.categoria)">
+            {{ clase.categoria }}
+          </p>
+          <p class="text-sm font-bold text-ink-900">{{ clase.curso }}</p>
+          <p class="text-xs text-ink-500">{{ clase.profesor }}</p>
+        </div>
+        <span class="text-ink-300" aria-hidden="true">›</span>
+      </div>
+    } @empty {
+      @if (!academico.horario.isLoading()) {
+        <div class="rounded-xl border border-dashed border-line bg-white px-5 py-8 text-center">
+          <p class="text-sm font-medium text-ink-700">No tienes clases este día.</p>
+          <p class="text-xs text-ink-400 mt-1">Elige otro día de la semana para ver tu agenda.</p>
+        </div>
+      }
+    }
+  </div>
+} @else {
+  <!-- ============ VISTA DOCENTE/ADMIN (gestión CRUD) ============ -->
+  <div class="flex items-center justify-between mb-5">
+    <div>
+      <p class="text-[11px] font-semibold tracking-wider text-ink-300 uppercase mb-1">Administración</p>
+      <h2 class="text-lg font-bold text-ink-900">Gestión de horario</h2>
+    </div>
+    <button
+      type="button"
+      (click)="abrirCrear()"
+      class="flex items-center gap-2 rounded-lg bg-brand-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-800"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.8" class="w-4 h-4">
+        <path stroke-linecap="round" d="M12 5v14M5 12h14" />
+      </svg>
+      Agregar clase
+    </button>
+  </div>
+
+  <div class="rounded-xl border border-line bg-white overflow-hidden">
+    <div class="grid grid-cols-[1.1fr_1.1fr_0.6fr_0.9fr_auto] gap-4 px-6 py-3 border-b border-line">
+      <span class="text-[11px] font-semibold tracking-wider text-ink-300 uppercase">Estudiante</span>
+      <span class="text-[11px] font-semibold tracking-wider text-ink-300 uppercase">Curso</span>
+      <span class="text-[11px] font-semibold tracking-wider text-ink-300 uppercase">Día</span>
+      <span class="text-[11px] font-semibold tracking-wider text-ink-300 uppercase">Horario</span>
+      <span></span>
+    </div>
+
+    @if (horarioAdmin.horario.isLoading()) {
+      <p class="px-6 py-6 text-sm text-ink-500">Cargando...</p>
+    }
+
+    @for (fila of filasAdmin(); track fila.registro.id) {
+      <div class="grid grid-cols-[1.1fr_1.1fr_0.6fr_0.9fr_auto] gap-4 items-center px-6 py-3.5 border-b border-line last:border-b-0">
+        <span class="text-sm font-medium text-ink-900">{{ fila.estudiante }}</span>
+        <span class="text-sm text-ink-700">{{ fila.curso }}</span>
+        <span class="text-sm text-ink-700">{{ fila.registro.dia }} {{ fila.registro.fecha }}</span>
+        <span class="text-sm text-ink-700">{{ fila.registro.horaInicio }}–{{ fila.registro.horaFin }}</span>
+        <div class="flex items-center gap-3 justify-self-end">
+          <button type="button" (click)="abrirEditar(fila.registro)" class="text-xs font-semibold text-brand-700 hover:text-brand-900">
+            Editar
+          </button>
+          <button type="button" (click)="eliminar(fila.registro)" class="text-xs font-semibold text-red-600 hover:text-red-800">
+            Eliminar
+          </button>
+        </div>
+      </div>
+    } @empty {
+      @if (!horarioAdmin.horario.isLoading()) {
+        <p class="px-6 py-8 text-sm text-ink-500 text-center">No hay clases registradas todavía.</p>
+      }
+    }
+  </div>
+
+  @if (modalAbierto()) {
+    <app-modal [titulo]="editando() ? 'Editar clase' : 'Agregar clase'" (cerrar)="cerrarModal()">
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-ink-700 mb-1.5">Estudiante</label>
+            <select
+              formControlName="estudianteId"
+              class="w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-700/30 focus:border-brand-700"
+            >
+              <option [value]="0" disabled>Selecciona</option>
+              @for (e of usuarioAdmin.estudiantes(); track e.id) {
+                <option [value]="e.id">{{ e.nombre }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-ink-700 mb-1.5">Curso</label>
+            <select
+              formControlName="cursoId"
+              class="w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-700/30 focus:border-brand-700"
+            >
+              <option [value]="0" disabled>Selecciona</option>
+              @for (c of cursoAdmin.cursos.value(); track c.id) {
+                <option [value]="c.id">{{ c.nombre }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-ink-700 mb-1.5">Día</label>
+            <select
+              formControlName="dia"
+              class="w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-700/30 focus:border-brand-700"
+            >
+              @for (d of diasDisponibles; track d) {
+                <option [value]="d">{{ d }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-ink-700 mb-1.5">Fecha (día del mes)</label>
+            <input
+              type="number"
+              min="1"
+              max="31"
+              formControlName="fecha"
+              class="w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-700/30 focus:border-brand-700"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-ink-700 mb-1.5">Hora inicio</label>
+            <input
+              type="time"
+              formControlName="horaInicio"
+              class="w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-700/30 focus:border-brand-700"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-ink-700 mb-1.5">Hora fin</label>
+            <input
+              type="time"
+              formControlName="horaFin"
+              class="w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-700/30 focus:border-brand-700"
+            />
+          </div>
+        </div>
+
+        @if (errorMsg()) {
+          <p class="text-sm text-red-600">{{ errorMsg() }}</p>
+        }
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" (click)="cerrarModal()" class="rounded-lg px-4 py-2.5 text-sm font-semibold text-ink-700 hover:bg-brand-50">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="guardando()"
+            class="rounded-lg bg-brand-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 disabled:opacity-50"
+          >
+            {{ guardando() ? "Guardando..." : "Guardar" }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+}

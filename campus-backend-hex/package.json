@@ -1,0 +1,24 @@
+{
+  "name": "campus-backend",
+  "version": "2.0.0",
+  "description": "Backend Node.js + Express + Firebase Firestore con arquitectura Hexagonal (Puertos y Adaptadores) para el MVP de gestión académica",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "migrate:firestore": "node src/infraestructura/adaptadores-secundarios/firestore/migrar-a-firestore.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "firebase": "^12.19.0",
+    "firebase-admin": "^14.4.0",
+    "google-auth-library": "^11.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

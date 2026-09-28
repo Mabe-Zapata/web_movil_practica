@@ -1,0 +1,26 @@
+<div class="todos-container">
+  <div class="header">
+    <h2>Mis Todos</h2>
+    <button (click)="logout()" class="btn-logout">Salir</button>
+  </div>
+
+  <div class="add-todo">
+    <input 
+      type="text" 
+      [(ngModel)]="newTodoTitle" 
+      placeholder="Nueva tarea..."
+      (keyup.enter)="createTodo()"
+      class="input-field"
+    />
+    <button (click)="createTodo()" class="btn-primary">Agregar</button>
+  </div>
+
+  <ul class="todo-list">
+    <li *ngFor="let todo of todos" class="todo-item">
+      <span>{{ todo.title }}</span>
+      <button (click)="deleteTodo(todo.id)" class="btn-delete">×</button>
+    </li>
+  </ul>
+
+  <p *ngIf="todos.length === 0" class="empty">No hay tareas</p>
+</div>
